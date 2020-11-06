@@ -1,7 +1,4 @@
-# Movie Recommendation System
-
-## System Overview 
-In the system, I implemented several algorithms to make recommendation for movies. 
+# Paper
 
 ## Implementation 
 - User-Based Collaborative Filtering Algorithms
@@ -13,10 +10,15 @@ In the system, I implemented several algorithms to make recommendation for movie
 - Item-Based Collaborative Filtering Algorithms
   * Adjusted cosine similarity method
   
-- Ensemble Algorithm
-  * 0.4 * user-based cosine similarity CF with case amplification(p = 2) +
-    0.3 * user-based Pearson correlation CF with IUF +
-    0.3 * item-based CF with adjusted cosine similarity
-    
+- 已完成
+  *  user-based cosine similarity 
+  *  user-based Pearson correlation 
+  *  item-based adjusted cosine similarity
+
+- 未完成
+  *  item-based cosine similarity 
+  *  item-based Pearson correlation 
+  *  user-based adjusted cosine similarity
+
 ## License
 Copyright 2017 Sen Zhang
