@@ -1,21 +1,13 @@
 # Paper
 
 ## Implementation 
-- User-Based Collaborative Filtering Algorithms
-  * Cosine similarity method
-  * Pearson Correlation method
-  * Inverse user frequency
-  * Case modification
   
-- Item-Based Collaborative Filtering Algorithms
-  * Adjusted cosine similarity method
-  
-- 已完成
+- 已完成(包含prediction)
   *  user-based cosine similarity 
   *  user-based Pearson correlation 
   *  item-based adjusted cosine similarity
 
-- 未完成
+- 未完成(包含prediction)
   *  item-based cosine similarity 
   *  item-based Pearson correlation 
   *  user-based adjusted cosine similarity

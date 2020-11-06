@@ -817,21 +817,3 @@ def main_prediction():
 
 #main_similarity()
 main_prediction()
-
-
-'''
-def userbase_predict(userid, cosine_list_of_neighbors, pearson_list_of_neighbors,):
-
-    cosine_rating = 1
-    pearson_rating = 1
-    adjusted_rating = "None"
-
-    return cosine_rating, adjusted_rating, pearson_rating
-def itembase_predict(userid, cosine_list_of_neighbors, pearson_list_of_neighbors,):
-
-    cosine_rating = "None"
-    pearson_rating = "None"
-    adjusted_rating = 1
-
-    return cosine_rating, adjusted_rating, pearson_rating
-'''
