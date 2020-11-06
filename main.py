@@ -1,3 +1,149 @@
+import numpy as np
+import pandas as pd
+
+class TestUserMap:
+
+    def __init__(self):
+        self.map = {}
+
+    def get_map(self):
+        return self.map
+
+    def put_user(self, user_id, test_user):
+        self.map[user_id] = test_user
+
+    def get_user(self, user_id):
+        return self.map.get(user_id)
+
+class TestUser:
+
+    def __init__(self, user_id):
+        self.user_id = user_id
+        # the list of rated movie
+        self.list_of_rated_movie = []
+        # the list of rate of rated movie
+        self.list_of_rate_of_rated_movie = []
+        # the list of unrated movie
+        self.list_of_unrated_movie = []
+
+    def get_user_id(self):
+        return self.user_id
+
+    def get_list_of_rated_movie(self):
+        return self.list_of_rated_movie
+
+    def get_list_of_rate_of_rated_movie(self):
+        return self.list_of_rate_of_rated_movie
+
+    def get_list_of_unrated_movie(self):
+        return self.list_of_unrated_movie
+
+
+def build_test_user_map(test_file):
+    '''
+    build the test user list from test.txt
+    :param test_file: test.txt
+    :return: python dictionary
+    '''
+    df = pd.read_table(test_file, sep="\s+", header=None)
+
+    rows = df.shape[0]
+
+    # create a map to store the user id with TestUser object
+    user_map = TestUserMap().get_map()
+
+    for i in range(rows):
+        user_id = df[0][i]
+
+        if user_id not in user_map:
+            user = TestUser(user_id)
+            user_map[user_id] = user
+
+        user = user_map[user_id]
+        rate = df[2][i]
+        if rate > 0:
+            user.get_list_of_rated_movie().append(df[1][i])
+            user.get_list_of_rate_of_rated_movie().append(df[2][i])
+        else:
+            user.get_list_of_unrated_movie().append(df[1][i])
+
+    return user_map
+
+def build_train_matrix(train_file, train_matrix):
+    '''
+    load the training data
+    :param train_file: txt file
+    :param matrix: python 2-d array
+    :return: void
+    '''
+    file = open(train_file, "r")
+    lines_of_file = file.read().strip().split("\n")
+
+    for i in range(len(lines_of_file)):
+        line = lines_of_file[i]
+        train_matrix[i] = [int(val) for val in line.split()]
+
+
+def avg_movie_rate_of_train_users(train_matrix):
+    '''
+    calculate the mean of each train user in the train data
+    :param train_matrix: python 2-d array
+    :return: python dictionary, K: train user id, V: mean of given train user
+    '''
+
+    map_mean_train_users = {}
+    for index, row in enumerate(train_matrix):
+        mean_rate = 0.0
+
+        user_id = index + 1
+        non_zero_list = [rate for rate in row if rate > 0]
+
+        if len(non_zero_list) > 0:
+            mean_rate = sum(non_zero_list) / len(non_zero_list)
+
+        map_mean_train_users[user_id] = mean_rate
+
+    return map_mean_train_users
+def avg_movie_rate_of_train_movies(train_matrix):
+    '''
+    calculate the mean rate of each movie in the train
+    :param movie_id: int
+    :param train_matrix: python 2-d list
+    :return: python dictionary, K: movie id, V: mean rate
+    '''
+
+    map_mean_rate = {}
+
+    t_train_matrix = np.array(train_matrix).T
+
+    for index, row in enumerate(t_train_matrix):
+        movie_id = index + 1
+        mean_rate = 0.0
+
+        non_zero = [rate for rate in row if rate > 0]
+        if len(non_zero) > 0:
+            mean_rate = sum(non_zero) / len(non_zero)
+
+        map_mean_rate[movie_id] = mean_rate
+
+    return map_mean_rate
+def avg_movie_rate_of_test_user(user_id, test_map):
+    '''
+    calculate the average rate of given test user
+    :param user_id: int
+    :param test_map: python dictionary
+    :return: int
+    '''
+    user = test_map[user_id]
+    list_of_rate_of_rated_movie = user.get_list_of_rate_of_rated_movie()
+
+    avg_rate = 0.0
+    if len(list_of_rate_of_rated_movie) != 0:
+        avg_rate = sum(list_of_rate_of_rated_movie) / len(list_of_rate_of_rated_movie)
+
+    return avg_rate
+
+
 def cal_cosine_similarity(v1, v2):
     '''
     calculate the cosine similarity
@@ -245,3 +391,79 @@ def build_map_similar_neighbor_adj_cosine(train_matrix, train_mean_rate_map):
 
     return neighbor_map
 
+
+def runtest(testfile,\
+        train_matrix,\
+        train_mean_rate_map,\
+        train_movie_mean_map,\
+        adj_cosine_map_of_neighbors):
+    '''
+    process input file
+    :param io_file: python tuple(output file, input file)
+    :param train_matrix: python 2-d list
+    :param train_mean_rate_map: python dictionary
+    :param train_movie_mean_map: python dictionary
+    :param iuf_train_matrix: python 2-d list
+    :return: void
+    '''
+
+    test_map = build_test_user_map(testfile)
+
+    # sort the test users
+    list_of_test_user_id = sorted(test_map.keys())
+
+    for user_id in list_of_test_user_id:
+        user = test_map[user_id]
+        list_of_unrated_movie = user.get_list_of_unrated_movie()
+
+        # neighbor searching based on cosine similarity
+        #根據test的userid去計算每個sim 沒有共同movie的sim設為0
+        cosine_list_of_neighbors = find_similar_neighbor_cosine(user_id, train_matrix, test_map)
+        #print(len(cosine_list_of_neighbors)) 
+        
+        # neighbor searching based on pearson correlation
+        pearson_list_of_neighbors = find_similar_neighbor_pearson(user_id, train_matrix, test_map, train_mean_rate_map)###計算sim單獨一個user
+        #print(len(pearson_list_of_neighbors))
+
+def main():
+    '''
+    the main entry the program
+    :return: void
+    '''
+    
+    train_file = "train.txt"
+    testfile = "test5.txt"
+    # cross-validation
+    # io_list = [("./mae/eval_result.txt", "./mae/eval_test.txt")]
+    # train_file = "./mae/eval_train.txt"
+
+    # build the train matrix from train.txt
+    num_of_users = 200
+    num_of_movies = 1000 
+    train_matrix = [[0] * num_of_movies] * num_of_users
+    build_train_matrix(train_file, train_matrix)
+
+    print(len(train_matrix))
+    train_mean_rate_map = avg_movie_rate_of_train_users(train_matrix)
+    print(len(train_mean_rate_map))
+    train_movie_mean_map = avg_movie_rate_of_train_movies(train_matrix)
+    print(len(train_movie_mean_map))
+
+    # build neighbor map based on adjusted cosine similarity
+    print(len(train_matrix), len(train_mean_rate_map))
+    adj_cosine_map_of_neighbors = build_map_similar_neighbor_adj_cosine(train_matrix, train_mean_rate_map)
+    #1000*1000 itembase-------------------------------------------------------------------------------------------
+    print("finish building the neighbor map")
+    print(len(adj_cosine_map_of_neighbors))
+    #print(adj_cosine_map_of_neighbors)
+
+    print("-----------------------------------------------------")
+
+    
+    runtest(testfile,\
+        train_matrix,\
+        train_mean_rate_map,\
+        train_movie_mean_map,\
+        adj_cosine_map_of_neighbors)
+
+main()
