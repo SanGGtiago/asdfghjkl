@@ -12,5 +12,7 @@
   *  item-based Pearson correlation 
   *  user-based adjusted cosine similarity
 
+input100*200改dataset就可以了
+就會變成200*200
 ## License
 Copyright 2017 Sen Zhang

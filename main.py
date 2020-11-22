@@ -66,7 +66,7 @@ def build_test_user_map(test_file):
         user = user_map[user_id]
         rate = df[2][i]
         ##############df[1][i]=movie_id df[2][i]=movie_id的rating 
-        user.get_list_of_allmovie().append(df[1][i])
+        #user.get_list_of_allmovie().append(df[1][i])
         if rate > 0:
             user.get_list_of_rated_movie().append(df[1][i])
             user.get_list_of_rate_of_rated_movie().append(df[2][i])
@@ -302,9 +302,11 @@ def find_similar_neighbor_cosine(user_id, train_matrix, test_map):
         if common_movie > 1:
             cosine_similarity = cal_cosine_similarity(test_vector, train_vector)
 
-            list_of_neighbor.append((train_user_id, cosine_similarity))
+            #list_of_neighbor.append((train_user_id, cosine_similarity))
+            list_of_neighbor.append((cosine_similarity))
         if common_movie < 2:
-            list_of_neighbor.append([0])
+            #list_of_neighbor.append((train_user_id, 0))
+            list_of_neighbor.append((0))
 
     #list_of_neighbor.sort(key=lambda tup : tup[1], reverse=True)
 
@@ -669,8 +671,11 @@ def similarity_caculate(testfile,\
     num_of_neighbor = 100###########why
     control = True
     # sort the test users
-    list_of_test_user_id = sorted(test_map.keys())
 
+    all_similarity = []
+
+    list_of_test_user_id = sorted(test_map.keys())
+    print(len(list_of_test_user_id))
     for user_id in list_of_test_user_id:
         user = test_map[user_id]
         list_of_unrated_movie = user.get_list_of_unrated_movie()
@@ -678,6 +683,8 @@ def similarity_caculate(testfile,\
 
         #根據test的userid去計算每個sim 沒有共同movie的sim設為0 所以user_id會有200個對應所有user 但只有要測試的user in list_of_test_user_id
         cosine_list_of_neighbors = find_similar_neighbor_cosine(user_id, train_matrix, test_map)
+        all_similarity.append(cosine_list_of_neighbors)
+        #all_similarity.append(np.array(cosine_list_of_neighbors).astype(np.float32))
         if control==True: 
             print(len(cosine_list_of_neighbors)) 
 
@@ -686,7 +693,10 @@ def similarity_caculate(testfile,\
         if control==True: 
             print(len(pearson_list_of_neighbors)) 
             control=False
-
+    print("--------------------------", len(all_similarity))
+    all_similarity_array = np.array(all_similarity).astype(np.float32)
+    print(all_similarity_array.shape, all_similarity_array.dtype)
+    np.save("similarity.npy", all_similarity_array)
 
     #########################################
     #這裡要打儲存similarity資料 (userbase_cosine_list_of_neighbors, userbase_pearson_list_of_neighbors, itembase_adj_cosine_map_of_neighbors)
@@ -756,7 +766,7 @@ def main_similarity():
     '''
     
     train_file = "train.txt"
-    testfile = "test20.txt"
+    testfile = "test20.txt" 
 
     # build the train matrix from train.txt
     num_of_users = 200
@@ -776,7 +786,6 @@ def main_similarity():
     print("-----------------------------------------------------")
     print(len(adj_cosine_map_of_neighbors))
     
-
     similarity_caculate(testfile,\
         train_matrix,\
         train_mean_rate_map,\
@@ -815,5 +824,12 @@ def main_prediction():
         train_movie_mean_map,\
         adj_cosine_map_of_neighbors)
 
-#main_similarity()
-main_prediction()
+def test():
+    data = np.load('similarity.npy', allow_pickle=True)
+    print(data.shape)
+    print(data[0, :])
+
+
+main_similarity()
+#main_prediction()
+#test()
